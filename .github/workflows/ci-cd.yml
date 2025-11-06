@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: CI/CD - Spring Boot Docker
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,29 +18,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Grant execute permission for Gradle
+        run: chmod +x gradlew
+
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-jar
-          path: build/libs/*.jar
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download built JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: app-jar
-          path: build/libs   # 👈 this ensures /build/libs exists
-
-      - name: Verify JAR
+      - name: Verify jar exists
         run: ls -R build/libs
 
       - name: Log in to Docker Hub
