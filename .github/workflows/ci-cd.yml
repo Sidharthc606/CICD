@@ -55,10 +55,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-jar
-          path: build/libs
+          path: ./build/libs   # ✅ create same folder structure for Dockerfile
 
-      - name: Debug folder structure
-        run: ls -R
+      - name: Verify JAR presence
+        run: ls -R build/libs
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
