@@ -10,6 +10,7 @@ jobs:
   # -------------------------------------------------
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,6 +20,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: gradle   # 🟢 Enables Gradle caching
 
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
@@ -26,11 +28,11 @@ jobs:
       - name: Build JAR with Gradle
         run: ./gradlew clean bootJar
 
-      - name: Run tests
+      - name: Run Tests
         run: ./gradlew test
 
-      - name: Verify build/libs folder
-        run: ls -lh build/libs
+      - name: Verify built JAR
+        run: ls -R build/libs
 
       - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
@@ -43,7 +45,7 @@ jobs:
   # -------------------------------------------------
   docker:
     runs-on: ubuntu-latest
-    needs: build # Wait for build job to succeed
+    needs: build
 
     steps:
       - name: Checkout code
@@ -55,6 +57,9 @@ jobs:
           name: app-jar
           path: build/libs
 
+      - name: Debug folder structure
+        run: ls -R  # 🟢 Prints directory tree for troubleshooting
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -62,7 +67,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-docker:latest .
+        run: docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-docker:latest .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/hello-docker:latest
